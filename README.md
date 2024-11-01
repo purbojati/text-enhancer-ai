@@ -1,6 +1,7 @@
 # Fix AI
 
 ![Screenshot](screenshot.png)
+
 Fix AI is a macOS application designed to enhance your writing using OpenAI's language model. It allows you to improve your text by making it more professional or friendly with emojis.
 
 ## Features
@@ -19,8 +20,33 @@ Fix AI is a macOS application designed to enhance your writing using OpenAI's la
   - `rumps`
   - `openai`
   - `pyperclip`
+  - `pyinstaller`
 
 ## Installation
+
+There are two ways to build and install Fix AI:
+
+### Method 1: Using PyInstaller (Recommended)
+
+1. Clone the repository:
+   ```bash
+   git clone <repository-url>
+   cd <repository-directory>
+   ```
+
+2. Install the required packages:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+3. Build the application using PyInstaller:
+   ```bash
+   pyinstaller "Fix AI.spec"
+   ```
+
+4. After building, you can find the application in the `dist` directory.
+
+### Method 2: Using py2app (Alternative)
 
 1. Clone the repository:
    ```bash
@@ -48,11 +74,24 @@ Fix AI is a macOS application designed to enhance your writing using OpenAI's la
 4. If prompted, enter your OpenAI API key.
 5. The enhanced text will be automatically copied to your clipboard.
 
+## Building from Source
+
+The application can be built using the included spec file:
+
+```bash
+pyinstaller --windowed --name="Fix AI" --icon=app.iconset/FixAI.icns fix_ai.py
+```
+
+Or simply:
+```bash
+pyinstaller "Fix AI.spec"
+```
+
 ## License
 
 This project is licensed under the MIT License. See the LICENSE file for details.
 
 ## Acknowledgments
 
-- Made with ❤️ by Adjie Purbojati
+- Made by Adjie Purbojati
 - Powered by OpenAI's language model
