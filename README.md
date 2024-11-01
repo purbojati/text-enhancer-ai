@@ -1,5 +1,6 @@
 # Fix AI
 
+![Screenshot](screenshot.png)
 Fix AI is a macOS application designed to enhance your writing using OpenAI's language model. It allows you to improve your text by making it more professional or friendly with emojis.
 
 ## Features
