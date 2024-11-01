@@ -1,2 +1,7 @@
-node_modules/
-*.log
+# Ignore everything
+*
+
+# Except these files
+!fix_ai.py
+!requirements.txt
+!setup.py 

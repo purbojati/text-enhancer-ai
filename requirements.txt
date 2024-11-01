@@ -1,0 +1,5 @@
+rumps>=0.4.0
+openai>=1.0.0
+pyperclip>=1.8.2
+py2app>=0.28.0
+setuptools>=68.0.0
