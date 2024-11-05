@@ -22,8 +22,8 @@ class FixAI(rumps.App):
             os.environ["OPENAI_API_KEY"] = self.api_key
             
         self.enhancement_modes = {
-            "Professional": "Make the text more professional and formal while maintaining its core meaning.",
-            "Friendly with Emoji": "Make the text more friendly and casual, adding appropriate emojis while maintaining its core meaning."
+            "Professional": "Rewrite the following message to be more professional and workplace-appropriate while keeping all @mentions, links, and technical terms exactly as they are. Make it clear and concise, suitable for Slack/email business communication, but remove any casual language or unprofessional expressions. Keep professionally appropriate emojis.",
+            "Friendly with Emoji": "Make this message warm and conversational with appropriate emojis! Keep the same meaning but rewrite it in a friendly, approachable tone - like chatting with a good friend. Feel free to use casual expressions and add relevant emojis to make it more engaging and fun 😊"
         }
         
         self.is_loading = False
@@ -107,23 +107,57 @@ class FixAI(rumps.App):
             )
     
     def get_selected_text(self):
-        script = '''
-        tell application "System Events"
-            keystroke "c" using command down
-        end tell
-        delay 0.1
-        '''
-        subprocess.run(["osascript", "-e", script])
-        return pyperclip.paste()
+        try:
+            script = '''
+            tell application "System Events"
+                keystroke "c" using command down
+            end tell
+            delay 0.1
+            '''
+            result = subprocess.run(["osascript", "-e", script], capture_output=True, text=True)
+            
+            if result.stderr and "not allowed assistive access" in result.stderr:
+                rumps.notification(
+                    title="Permission Error",
+                    subtitle="Accessibility Access Required",
+                    message="Please grant accessibility permission in System Preferences > Security & Privacy > Privacy > Accessibility"
+                )
+                # Open System Preferences to the right page
+                subprocess.run(["open", "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility"])
+                return None
+                
+            return pyperclip.paste()
+        except Exception as e:
+            rumps.notification(
+                title="Error",
+                subtitle="Failed to get selected text",
+                message=str(e)
+            )
+            return None
     
     def paste_text(self, text):
-        pyperclip.copy(text)
-        script = '''
-        tell application "System Events"
-            keystroke "v" using command down
-        end tell
-        '''
-        subprocess.run(["osascript", "-e", script])
+        try:
+            pyperclip.copy(text)
+            script = '''
+            tell application "System Events"
+                keystroke "v" using command down
+            end tell
+            '''
+            result = subprocess.run(["osascript", "-e", script], capture_output=True, text=True)
+            
+            if result.stderr and "not allowed assistive access" in result.stderr:
+                rumps.notification(
+                    title="Permission Error",
+                    subtitle="Accessibility Access Required",
+                    message="Please grant accessibility permission in System Preferences > Security & Privacy > Privacy > Accessibility"
+                )
+                subprocess.run(["open", "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility"])
+        except Exception as e:
+            rumps.notification(
+                title="Error",
+                subtitle="Failed to paste text",
+                message=str(e)
+            )
     
     @rumps.clicked("Make Professional")
     def enhance_professional_text(self, _):
@@ -143,6 +177,7 @@ class FixAI(rumps.App):
             return
             
         original_text = self.get_selected_text()
+        print(f"Selected text: {original_text}")
         
         if not original_text:
             rumps.notification(
@@ -153,22 +188,24 @@ class FixAI(rumps.App):
             return
         
         self.is_loading = True
-        self.progress_indicator.show()  # Show progress indicator
+        self.progress_indicator.show()
         threading.Thread(target=self.update_loading_animation, daemon=True).start()
         
         try:
             client = OpenAI()
+            print("OpenAI client created")
             
             prompt = self.enhancement_modes[mode]
             
             response = client.chat.completions.create(
-                model="gpt-4o-mini",
+                model="gpt-4",
                 messages=[
                     {"role": "system", "content": f"You are a writing enhancement assistant. {prompt}"},
                     {"role": "user", "content": original_text}
                 ],
                 temperature=0.7
             )
+            print("Got response from OpenAI")
             
             enhanced_text = response.choices[0].message.content
             self.paste_text(enhanced_text)
@@ -179,6 +216,7 @@ class FixAI(rumps.App):
                 message="The enhanced text has been pasted"
             )
         except Exception as e:
+            print(f"Error: {str(e)}")
             rumps.notification(
                 title="Error",
                 subtitle="Enhancement Failed",
